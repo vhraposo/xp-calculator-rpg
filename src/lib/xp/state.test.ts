@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { createInitialState, hasCustomValues, setTrackedField } from './state'
 
 describe('createInitialState', () => {
-  it('inicia atributos, esferas, status e perícia em 1 e dados em 0', () => {
+  it('inicia todas as categorias no nível 0', () => {
     const state = createInitialState()
 
-    expect(state.attributes.for).toEqual({ current: 1, target: 1 })
-    expect(state.attributes.sdm).toEqual({ current: 1, target: 1 })
-    expect(state.spheres.nin).toEqual({ current: 1, target: 1 })
-    expect(state.statuses.combate).toEqual({ current: 1, target: 1 })
-    expect(state.skills.pericia).toEqual({ current: 1, target: 1 })
+    expect(state.attributes.for).toEqual({ current: 0, target: 0 })
+    expect(state.attributes.sdm).toEqual({ current: 0, target: 0 })
+    expect(state.spheres.nin).toEqual({ current: 0, target: 0 })
+    expect(state.statuses.combate).toEqual({ current: 0, target: 0 })
+    expect(state.skills.pericia).toEqual({ current: 0, target: 0 })
     expect(state.dice.vida).toEqual({ current: 0, target: 0 })
     expect(state.dice.energia).toEqual({ current: 0, target: 0 })
   })
@@ -19,8 +19,8 @@ describe('createInitialState', () => {
     const updated = setTrackedField(state, 'attributes', 'for', 'target', 10)
 
     expect(updated.attributes.for.target).toBe(10)
-    expect(updated.attributes.des.target).toBe(1)
-    expect(state.attributes.for.target).toBe(1)
+    expect(updated.attributes.des.target).toBe(0)
+    expect(state.attributes.for.target).toBe(0)
   })
 })
 
@@ -30,9 +30,9 @@ describe('setTrackedField', () => {
     const first = setTrackedField(state, 'spheres', 'gen', 'current', 5)
     const second = setTrackedField(first, 'spheres', 'gen', 'target', 8)
 
-    expect(state.spheres.gen).toEqual({ current: 1, target: 1 })
+    expect(state.spheres.gen).toEqual({ current: 0, target: 0 })
     expect(second.spheres.gen).toEqual({ current: 5, target: 8 })
-    expect(second.spheres.nin).toEqual({ current: 1, target: 1 })
+    expect(second.spheres.nin).toEqual({ current: 0, target: 0 })
   })
 
   it('sanitiza valores inválidos', () => {

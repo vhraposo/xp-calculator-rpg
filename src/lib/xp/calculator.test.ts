@@ -4,7 +4,14 @@ import {
   calculateProgressionCost,
   computeCalculator,
 } from './calculator'
-import { ATTRIBUTE_LIMITS, SPHERES } from './constants'
+import {
+  ATTRIBUTE_LIMITS,
+  DICE_LIMITS,
+  SKILL_LIMITS,
+  SPHERE_LIMITS,
+  SPHERES,
+  STATUS_LIMITS,
+} from './constants'
 import { setTrackedField } from './state'
 import { createInitialState } from './state'
 import {
@@ -97,8 +104,91 @@ describe('calculateProgressionCost — atributos', () => {
     const result = calculateProgressionCost(Number.NaN, 5, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS)
 
     expect(result.status).toBe('increase')
-    expect(result.current).toBe(1)
-    expect(result.totalXp).toBe(32)
+    expect(result.current).toBe(0)
+    expect(result.totalXp).toBe(40)
+  })
+})
+
+describe('progressão a partir do nível 0 (regra corrigida)', () => {
+  it('não cobra nada para permanecer no nível 0 (0 → 0 = 0 XP)', () => {
+    const result = calculateProgressionCost(0, 0, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS)
+
+    expect(result.status).toBe('equal')
+    expect(result.current).toBe(0)
+    expect(result.target).toBe(0)
+    expect(result.units).toBe(0)
+    expect(result.totalXp).toBe(0)
+    expect(result.breakdown).toEqual([])
+  })
+
+  it('cobra o primeiro ponto adquirido a 8 XP (0 → 1 = 8 XP)', () => {
+    const result = calculateProgressionCost(0, 1, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS)
+
+    expect(result.units).toBe(1)
+    expect(result.totalXp).toBe(8)
+    expect(result.breakdown).toEqual([
+      { range: '1', units: 1, costPerUnit: 8, total: 8 },
+    ])
+  })
+
+  it('Atributo 0 → 5 = 40 XP', () => {
+    const result = calculateProgressionCost(0, 5, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS)
+
+    expect(result.units).toBe(5)
+    expect(result.totalXp).toBe(40)
+    expect(result.breakdown).toEqual([
+      { range: '1–5', units: 5, costPerUnit: 8, total: 40 },
+    ])
+  })
+
+  it('Atributo 0 → 10 = 90 XP', () => {
+    expect(calculateProgressionCost(0, 10, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS).totalXp).toBe(90)
+  })
+
+  it('Atributo 5 → 15 = 115 XP', () => {
+    expect(calculateProgressionCost(5, 15, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS).totalXp).toBe(115)
+  })
+
+  it('Atributo 0 → 32 = 560 XP', () => {
+    const result = calculateProgressionCost(0, 32, ATTRIBUTE_TIERS, ATTRIBUTE_LIMITS)
+
+    expect(result.units).toBe(32)
+    expect(result.totalXp).toBe(560)
+    expect(result.breakdown.map((entry) => entry.total)).toEqual([
+      40, 50, 65, 75, 100, 150, 80,
+    ])
+  })
+
+  it('Esfera 0 → 10 = 80 XP', () => {
+    expect(calculateProgressionCost(0, 10, SPHERE_TIERS, SPHERE_LIMITS).totalXp).toBe(80)
+  })
+
+  it('Esfera 0 → 20 = 180 XP', () => {
+    expect(calculateProgressionCost(0, 20, SPHERE_TIERS, SPHERE_LIMITS).totalXp).toBe(180)
+  })
+
+  it('Esfera 50 → 52 = 60 XP', () => {
+    expect(calculateProgressionCost(50, 52, SPHERE_TIERS, SPHERE_LIMITS).totalXp).toBe(60)
+  })
+
+  it('Status 0 → 5 = 90 XP', () => {
+    expect(calculateProgressionCost(0, 5, STATUS_TIERS, STATUS_LIMITS).totalXp).toBe(90)
+  })
+
+  it('Perícia 0 → 5 = 13 XP', () => {
+    expect(calculateProgressionCost(0, 5, SKILL_TIERS, SKILL_LIMITS).totalXp).toBe(13)
+  })
+
+  it('Dado de Vida 0 → 3 = 30 XP', () => {
+    expect(calculateProgressionCost(0, 3, DICE_TIERS.vida, DICE_LIMITS).totalXp).toBe(30)
+  })
+
+  it('Dado de Mana 0 → 3 = 24 XP', () => {
+    expect(calculateProgressionCost(0, 3, DICE_TIERS.mana, DICE_LIMITS).totalXp).toBe(24)
+  })
+
+  it('Dado de Energia 0 → 3 = 24 XP', () => {
+    expect(calculateProgressionCost(0, 3, DICE_TIERS.energia, DICE_LIMITS).totalXp).toBe(24)
   })
 })
 
@@ -185,6 +275,35 @@ describe('calculateEnergyGain — energia das esferas', () => {
       mystical: 0,
       physical: 0,
     })
+  })
+
+  it('valida XP e energia das seis esferas a partir do nível 0 (0 → 3)', () => {
+    const expected: Record<
+      string,
+      { readonly xp: number; readonly mystical: number; readonly physical: number }
+    > = {
+      nin: { xp: 24, mystical: 30, physical: 15 },
+      gen: { xp: 24, mystical: 45, physical: 0 },
+      tai: { xp: 24, mystical: 0, physical: 45 },
+      buk: { xp: 24, mystical: 15, physical: 30 },
+      hij: { xp: 24, mystical: 30, physical: 30 },
+      kin: { xp: 24, mystical: 60, physical: 0 },
+    }
+
+    for (const sphere of SPHERES) {
+      const progression = calculateProgressionCost(
+        0,
+        3,
+        SPHERE_TIERS,
+        SPHERE_LIMITS,
+      )
+      const energy = calculateEnergyGain(progression.units, sphere.energy)
+      const reference = expected[sphere.id]
+
+      expect(progression.totalXp).toBe(reference.xp)
+      expect(energy.mystical).toBe(reference.mystical)
+      expect(energy.physical).toBe(reference.physical)
+    }
   })
 })
 
@@ -279,17 +398,17 @@ describe('computeCalculator', () => {
 
     expect(results.attributes.for.totalXp).toBe(115)
     expect(results.spheres.nin.totalXp).toBe(60)
-    expect(results.statuses.combate.totalXp).toBe(84)
-    expect(results.skills.pericia.totalXp).toBe(11)
+    expect(results.statuses.combate.totalXp).toBe(90)
+    expect(results.skills.pericia.totalXp).toBe(13)
     expect(results.dice.vida.totalXp).toBe(20)
     expect(results.byCategory).toEqual({
       attributes: 115,
       spheres: 60,
-      statuses: 84,
-      skills: 11,
+      statuses: 90,
+      skills: 13,
       dice: 20,
     })
-    expect(results.totalXp).toBe(290)
+    expect(results.totalXp).toBe(298)
     expect(results.energy).toEqual({ mystical: 70, physical: 35 })
     expect(results.sphereEnergy.nin).toEqual({ mystical: 70, physical: 35 })
     expect(results.sphereEnergy.gen).toEqual({ mystical: 0, physical: 0 })
@@ -304,8 +423,8 @@ describe('computeCalculator', () => {
     const results = computeCalculator(state)
 
     expect(results.sphereEnergy.nin).toEqual({ mystical: 70, physical: 35 })
-    expect(results.sphereEnergy.tai).toEqual({ mystical: 0, physical: 30 })
-    expect(results.energy).toEqual({ mystical: 70, physical: 65 })
+    expect(results.sphereEnergy.tai).toEqual({ mystical: 0, physical: 45 })
+    expect(results.energy).toEqual({ mystical: 70, physical: 80 })
   })
 
   it('ignora evoluções negativas nas somas', () => {

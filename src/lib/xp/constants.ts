@@ -7,17 +7,17 @@ import type {
   Status,
 } from './types'
 
-export const ATTRIBUTE_LIMITS: ProgressionLimits = { min: 1, max: 32 }
-export const SPHERE_LIMITS: ProgressionLimits = { min: 1, max: null }
-export const STATUS_LIMITS: ProgressionLimits = { min: 1, max: 5 }
-export const SKILL_LIMITS: ProgressionLimits = { min: 1, max: 5 }
+export const ATTRIBUTE_LIMITS: ProgressionLimits = { min: 0, max: 32 }
+export const SPHERE_LIMITS: ProgressionLimits = { min: 0, max: null }
+export const STATUS_LIMITS: ProgressionLimits = { min: 0, max: 5 }
+export const SKILL_LIMITS: ProgressionLimits = { min: 0, max: 5 }
 export const DICE_LIMITS: ProgressionLimits = { min: 0, max: null }
 
 export const INITIAL_LEVELS = {
-  attributes: 1,
-  spheres: 1,
-  statuses: 1,
-  skills: 1,
+  attributes: 0,
+  spheres: 0,
+  statuses: 0,
+  skills: 0,
   dice: 0,
 } as const
 

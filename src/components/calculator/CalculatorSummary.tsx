@@ -1,5 +1,6 @@
 import {
   Check,
+  ClipboardCheck,
   Dices,
   Flame,
   Orbit,
@@ -60,6 +61,7 @@ interface CalculatorSummaryProps {
   energy: EnergyGain
   isDirty: boolean
   onReset: () => void
+  onConclude: () => void
 }
 
 function SummaryBlock({
@@ -85,6 +87,7 @@ export function CalculatorSummary({
   energy,
   isDirty,
   onReset,
+  onConclude,
 }: CalculatorSummaryProps) {
   const [confirming, setConfirming] = useState(false)
 
@@ -120,6 +123,14 @@ export function CalculatorSummary({
         <p className="mt-1.5 text-xs text-slate-400">
           para concluir toda a evolução planejada
         </p>
+        <button
+          type="button"
+          onClick={onConclude}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-violet-400/30 bg-violet-500/20 px-3 py-2.5 text-sm font-bold text-violet-100 transition-colors hover:bg-violet-500/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+        >
+          <ClipboardCheck className="size-4" aria-hidden="true" />
+          Distribuição concluída
+        </button>
       </div>
 
       <SummaryBlock title="Distribuição por categoria">

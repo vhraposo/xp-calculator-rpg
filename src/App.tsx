@@ -1,12 +1,15 @@
+import { useCallback, useMemo, useState } from 'react'
 import { CalculatorSummary } from './components/calculator/CalculatorSummary'
 import { AttributeSection } from './components/calculator/AttributeSection'
 import { DiceSection } from './components/calculator/DiceSection'
+import { DistributionModal } from './components/calculator/DistributionModal'
 import { SkillSection } from './components/calculator/SkillSection'
 import { SphereSection } from './components/calculator/SphereSection'
 import { StatusSection } from './components/calculator/StatusSection'
 import { PageHeader } from './components/layout/PageHeader'
 import { useCalculator } from './hooks/useCalculator'
 import { formatXp } from './lib/format'
+import { buildDistributionSummary } from './lib/xp/summary'
 
 export default function App() {
   const {
@@ -20,6 +23,17 @@ export default function App() {
     updateSkill,
     updateDice,
   } = useCalculator()
+
+  const [isDistributionOpen, setIsDistributionOpen] = useState(false)
+
+  const summary = useMemo(() => buildDistributionSummary(results), [results])
+
+  const openDistribution = useCallback(() => setIsDistributionOpen(true), [])
+  const closeDistribution = useCallback(() => setIsDistributionOpen(false), [])
+  const resetDistribution = useCallback(() => {
+    reset()
+    setIsDistributionOpen(false)
+  }, [reset])
 
   return (
     <div className="relative min-h-dvh">
@@ -36,6 +50,7 @@ export default function App() {
               energy={results.energy}
               isDirty={isDirty}
               onReset={reset}
+              onConclude={openDistribution}
             />
           </div>
 
@@ -92,6 +107,15 @@ export default function App() {
           </span>
         </div>
       </div>
+
+      {isDistributionOpen ? (
+        <DistributionModal
+          summary={summary}
+          isDirty={isDirty}
+          onClose={closeDistribution}
+          onReset={resetDistribution}
+        />
+      ) : null}
     </div>
   )
 }
